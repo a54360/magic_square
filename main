@@ -1,0 +1,119 @@
+#include <stdio.h>
+#include <pthread.h>
+#include <time.h>
+
+#include <omp.h>
+#define NUM_THREADS 100
+double rtc()
+{
+        struct timeval time;
+        gettimeofday(&time,NULL);
+        return ( (double)(time.tv_sec*1000000+time.tv_usec)/1000000 );
+}
+
+int test_main(void) {
+
+    int sum = 0;
+    int sumAux = 0;
+    int sumRow = 0;
+    int sumCol = 0;
+    int size;
+    int i, j;
+
+	printf("Digite as dimensoes da matriz: \n");        //inserir dimensoes matriz
+	scanf("%d", &size);
+
+	int matrix[size][size];                             //matriz com dimensoes dadas
+
+	printf("Digite as numeros da matriz: \n");
+	for(int i = 0; i < size; i++) {
+		for(int j = 0; j < size; j++) {
+
+			printf("Na posicao %d,%d: ", i, j);
+			scanf("%d", &matrix[i][j]);
+		}
+	}
+
+
+	printf("\n\nYour matrix: \n");                      //print a matriz inserida desenho
+	for(int i = 0; i < size; i++) {
+		for(int j = 0; j < size; j++) {
+
+			printf("%d ", matrix[i][j]);
+		}
+		printf("\n");
+	}
+
+	printf("\n");
+
+
+	//------------------------------------------OMP------------------------------------------------------//
+
+
+
+
+    #pragma omp parallel private(i,j)
+  {
+	//soma diagonal principal
+    #pragma omp for reduction(+:sum) nowait
+	for( i = 0; i < size; i++)
+		sum += matrix[i][i];
+
+      #pragma omp for reduction(+: sumAux) nowait
+	for( i = 0; i < size; i++)
+		sumAux += matrix[i][size-i-1];
+	//printf("\nSoma diagonal principal %i e secundária %i\n", sum, sumAux);
+
+	//------------------------------------------LINHAS E COLUNAS-----------------------------------------------------------
+    #pragma omp for reduction(+: sumRow, sumCol) nowait
+	for(int i = 0; i < size; i++) {
+        sumRow = 0;
+        sumCol = 0;
+    for(int j = 0; j < size; j++) {
+        sumRow += matrix[i][j];
+        sumCol += matrix[j][i];
+		}
+		//printf("soma  Linhas %i\n",sumRow );
+		//printf("soma Colunas %i\n",sumCol );
+	}
+  }
+
+    //------------------------------------------PRINTS-----------------------------------------------------------
+    if (sum == sumCol && sum==sumRow && sum==sumAux  ) {
+		printf("Quadrado magico com sum = %d \n", sum);
+	} else {
+		printf("Quadrado nao magico \n");
+	}
+
+	return 0;
+}
+
+
+
+
+
+int main(int argc, char const *argv[])
+{
+	double elapsed, rtc();
+
+        elapsed=rtc();
+		/* Operation to be timed here */
+  char* arg = (char *)argv[1];
+
+  	for (int i = 0; i < 1; i++)
+  {
+    test_main();
+  }
+
+   elapsed=rtc()-elapsed;
+
+        printf( "   Elapsed time: Loop time = %8f  \n",	elapsed  /*/loop*/ );
+        printf( "   Tempo médio: Loop time = %8f  \n", elapsed/30  /*/loop*/ );
+        exit (0);
+}
+
+
+
+
+
+
